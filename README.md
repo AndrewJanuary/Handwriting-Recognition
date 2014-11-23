@@ -1,15 +1,15 @@
 Handwriting-Recognition
 =======================
 
-A prototype for offline recognition of handwritten (cursive) words using holistic features
+A prototype for offline recognition of handwritten (cursive) words using holistic features.
 
-The implemented system exists as several prototype functions developed using MATLAB. The Image Processing Toolkit35 is essential for the correct execution of the system. http://uk.mathworks.com/products/image/
+The implemented system exists as several image feature extraction prototype functions developed using MATLAB. The Image Processing Toolkit is essential for the correct execution of the system. http://uk.mathworks.com/products/image/
 
 Some knowledge of pattern recognition or digital image processing may be beneficial, but is not required. Where necessary, code commentary will attempt to clarify the purpose of specific code regions.
 
-It is recommend that the user execute the feature extraction functions prior to executing the classification functions. In doing so the user should gain an understanding of the specific feature sets used.
+It is recommend that the user execute the feature extraction functions prior to executing the classification function. In doing so the user should gain an understanding of the specific image features extracted.
 
-The file 'nFoldAll.m' can be considered to provide the most functionality, acting as a test harness which calls feature extraction prototypes.
+The file 'nFoldAll.m' can be considered as a test harness which calls the feature extraction prototypes and provides classifier functionality.
 
 
 Feature Extraction Prototypes 
