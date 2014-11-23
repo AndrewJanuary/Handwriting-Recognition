@@ -4,7 +4,7 @@
 %Feature extraction function - Calculates density of pixels across centroid row
 
 %USEAGE
-%wp = protoCentroid (imageIn) - processes the binary image file imageIn,
+%wp = protoCrossing (imageIn) - processes the binary image file imageIn,
 %determines and outputs pixel density in a single row
 %dispOut - optional graphical output
 %stats - optional statistics output
