@@ -1,0 +1,57 @@
+%Andrew January
+%07090690
+%BSc Computing - CMP3060 FYP
+%Image input and pre-processing module
+
+%USEAGE
+%word = preprocess (imageIn) - processes the binary image file imageIn
+%[word, wordResized] = preProcess (imageIn, resize) - processes and resizes
+% the binary image file imageIn
+function [word, wordResized] = preProcess (imageIn, resize)
+
+if nargout == 4
+    error('Too many output arguments. Outputs are image, image height, image width.')
+end
+
+if nargin == 2
+    resize =true;
+elseif nargin == 1
+    resize =false;
+else
+    error('Incorrect number of input arguments. Specify an input image to be pre-processed');
+end
+
+level=graythresh(imageIn);
+bw=im2bw(imageIn, level);
+ink=~bw;
+[height, width] = size(ink);
+
+%Traverses image rows. Finds white pixels in image
+r=1;
+wp=0;
+while r <= height
+    for i= ink(r, :);
+        wp=wp+i;
+    end
+    pixels(r)=wp;
+    wp=0;
+    r=r+1;
+end
+
+%Crops image lower region, then top
+%Segments image from surrounding black pixels
+%Preserves any black pixel space between image components such as i dots
+wpindex = find(pixels ~= 0);
+wordTop=wpindex(1);
+wordBottom=wpindex(end);
+ink=imcrop(ink,[0 0 width wordBottom]);
+word=imcrop(ink,[0 wordTop width height]);
+
+%resizes image for output if arugment specified
+if resize==true
+    wordResized = imresize(word, [120, 200]);
+else
+
+end
+
+end
