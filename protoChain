@@ -1,0 +1,141 @@
+%Andrew January
+%JAN07090690
+%BSc Computing - CMP3060 FYP
+%Feature extraction function - Freeman Chain Code
+
+%USEAGE
+%finalCode = protoChain ('imageIn','s') - processes the binary image file
+%imageIn, determines and outputs chain code
+%stats - optional statistics output
+function [finalCode] = protoChain(imageFile, stats)
+if nargout == 2
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities.')
+end
+
+if nargin == 2
+    stats =true;
+elseif nargin == 1
+    stats =false;
+else
+    error('Incorrect number of input arguments. Please specify an image file path.')
+end
+imgin=imread(imageFile);
+word=preProcess(imgin);
+[height, width] = size(word);
+
+el=1;
+%Finds and labels connected components.
+[L,num]=bwlabel(word,8);
+numObjects=num;
+
+rgbcomps=label2rgb(L);
+B=bwboundaries(word,'noholes');
+
+if numObjects==1
+    codes = fchcode(B{1});
+else %Determines longest boundary. Gets code for largest component
+    bLens = cellfun('length', B);
+    [lrgst, n] = max(bLens);
+    codes = fchcode(B{n});
+end
+
+fullchain=codes.fcc;
+chaindif=codes.diff;
+startpoint=codes.x0y0;
+fullLen=length(fullchain);
+
+%Run length encoding.Compares each chaincode element with the one next to it
+%Generates 2 vectors
+if size(fullchain,1) > size(fullchain,2), fullchain = fullchain'; end
+i = [ find(fullchain(1:end-1) ~= fullchain(2:end)) length(fullchain) ];
+reduced{2} = diff([ 0 i ]);
+reduced{1} = fullchain(i);
+
+clen=length(reduced{1});
+if clen>20
+
+    % Removes all frequency less than 4
+    index = find(reduced{2} < 4);
+    reduced{2}(index)=[];
+    reduced{1}(index)=[];
+
+    reducedCode=reduced{1};
+    frequency=reduced{2};
+else
+    reducedCode=reduced{1};
+    frequency=reduced{2};
+end
+
+clen=length(reducedCode);
+
+if clen>20
+
+    % Decodes chain code
+    reencoded=rle(reduced);
+    %Reencodes chaincode
+    if size(reencoded,1) > size(reencoded,2), reencoded = reencoded'; end
+    i = [ find(reencoded(1:end-1) ~= reencoded(2:end)) length(reencoded) ];
+    reduced{2} = diff([ 0 i ]);
+    reduced{1} = reencoded(i);
+
+    reducedCode=reduced{1};
+    frequency=reduced{2};
+
+else
+    reducedCode=reduced{1};
+    frequency=reduced{2};
+end
+
+numOcur=length(frequency);
+total=sum(frequency);
+
+%normalise the chain code frequencies to a length of 20
+while el<=numOcur
+    Z=frequency(el);
+    n= Z/total;
+    n=n*20;
+    normFreq(el)=n;
+    el=el+1;
+end
+
+clen=length(reducedCode);
+roundedFreq=round(normFreq);
+
+%Remove smallest frequencies until sum=20
+while  sum(roundedFreq)>20
+    minEl=min(normFreq);
+    index = find(normFreq == minEl);
+    reducedCode(index)=[];
+    normFreq(index)=[];
+    roundedFreq(index)=[];
+
+end
+
+%Removes all 0 frequencies
+index = find(roundedFreq == 0);
+normFreq(index)=[];
+reducedCode(index)=[];
+roundedFreq(index)=[];
+
+normalised{1}=reducedCode;
+normalised{2}=roundedFreq;
+
+% Decodes chain code
+finalCode=rle(normalised);
+
+
+%If chain code length <20, repeat end digits
+clen=length(finalCode);
+while clen<20
+    l=clen +1;
+    finalCode(l)=finalCode(clen);
+    clen=clen+1;
+end
+%output statistics of detected components, number of pixels & centroid location
+if stats == true
+    fprintf('\n Total number of connected components detected: %1.0f \r',numObjects);
+    fprintf('\n Start Co-ords: %1.0f \r',startpoint);
+else
+
+end
+end
