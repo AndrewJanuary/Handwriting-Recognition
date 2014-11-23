@@ -1,0 +1,129 @@
+%Andrew January
+%JAN07090690
+%BSc Computing - CMP3060 FYP
+%Feature extraction function - Vertical Density
+
+%USEAGE
+%normDensity = protoVDensity ('imageIn','d','s') - processes the binary image file
+%imageIn, determines and outputs vertical densities
+%normDensity = protoVDensity ('imageIn','d','s') - processes the binary image file
+%imageIn, determines and outputs vertical densities & upper percentage content
+%normDensity = protoVDensity ('imageIn','d','s') - processes the binary image file
+%imageIn, determines and outputs vertical densities, upper percentage & and lower percentage content
+%dispOut - optional graphical output
+%stats - optional statistics output
+function [normDensity, topPer, bottomPer] = protoVDensity(imageFile, dispOutput, stats)
+
+if nargout == 4
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities, percentage of word in upper region, percentage of word in lower region.')
+end
+
+if nargin == 3
+    stats =true;
+    dispOutput =true;
+elseif nargin == 2
+    dispOutput =true;
+    stats =false;
+elseif nargin == 1
+    dispOutput=false;
+    stats =false;
+else
+    error('Incorrect number of input arguments. Please specify an image file path.')
+end
+
+imgin=imread(imageFile);
+[word,wordResized]=preProcess(imgin,'R');
+[height, width] = size(wordResized);
+[L,num]=bwlabel(wordResized,8);
+numObjects=num;
+
+rgbcomps=label2rgb(L);
+B=bwboundaries(wordResized,'noholes');
+
+Row=1;
+if numObjects==1
+    wp=0;
+    while Row <= height
+        %counts the num of white pixels that crossing the centroid line
+        for i= sum(wordResized(Row, :));
+            wp=wp+i;
+        end
+        densities(Row)=wp;
+        wp=0;
+        Row=Row+1;
+    end
+else
+    bLens = cellfun('length', B);
+    [lrgst, n] = max(bLens);
+
+    wp=0;
+    while Row <= height
+        %counts the num of white pixels that crossing the centroid line
+        for i= sum(wordResized(Row, :));
+            wp=wp+i;
+        end
+        densities(Row)=wp;
+        wp=0;
+        Row=Row+1;
+    end
+    %change so that it returns wp for every row
+    %store the row number and number of wp
+end
+
+el=1;
+total=sum(densities);
+%normalise density. Return the percentage of total white pixel content in each
+%row
+ld=length(densities);
+while el<=ld
+    Z=densities(el);
+    n= Z/total;
+    n=n*100;
+    normDensity(el)=n;
+    el=el+1;
+end
+
+[height, width] = size(word);
+topThird= round(height/3);
+bottomThird= topThird*2;
+%Calculates the % of white pixels/ink in the upper and lower third
+topPer=sum(normDensity(1:topThird));
+bottomPer=sum(normDensity(bottomThird:end));
+
+tZones=[1,width];
+tZonee=[topThird,topThird];
+
+bZones=[1,width];
+bZonee=[bottomThird,bottomThird];
+
+if dispOutput == true
+    
+    subplot(1,3,1),subimage(imgin);hold on;
+    title('Original Image');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,2),subimage(rgbcomps);hold on;
+    title('Connected Components');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,3),subimage(word);hold on;
+    plot(tZones,tZonee,'r', 'Linewidth',2);
+    plot(bZones,bZonee,'r', 'Linewidth',2);
+    title({'Binary Image', 'Regions Marked'});    
+    
+    figure;denbar=barh (normDensity, 'DisplayName', 'd');
+    title 'Histogram of Vertical Density';
+    ylabel('Row No.');
+    xlabel('Density %');   
+else
+
+end
+
+if stats == true
+    fprintf('\n Upper region ends at row: %1.0f \r',topThird);
+    fprintf('\n Lower region starts at row: %1.0f \r',bottomThird);
+    fprintf('\n Total number of connected components detected: %1.0f \r',numObjects);
+else
+
+end
+end
