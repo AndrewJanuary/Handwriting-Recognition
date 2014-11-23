@@ -1,0 +1,100 @@
+%Andrew January
+%07090690
+%BSc Computing - CMP3060 FYP
+%Feature extraction function - Calculates density of pixels across centroid row
+
+%USEAGE
+%wp = protoCentroid (imageIn) - processes the binary image file imageIn,
+%determines and outputs pixel density in a single row
+%dispOut - optional graphical output
+%stats - optional statistics output
+function [wp] = protoCrossing(imageFile,dispOutput, stats)
+if nargout == 2
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities.')
+end
+
+if nargin == 3
+    stats =true;
+    dispOutput =true;
+elseif nargin == 2
+    dispOutput =true;
+    stats =false;
+elseif nargin == 1
+    dispOutput=false;
+    stats =false;
+else
+    error('Incorrect number of input arguments. Please specify an image file path.')
+end
+imgin=imread(imageFile);
+[word]=preProcess(imgin);
+[height, width] = size(word);
+
+%Detects and labels connected components.
+[L,num]=bwlabel(word,8);
+numObjects=num;
+B=bwboundaries(word,'noholes');
+
+rgbcomps=label2rgb(L);
+
+RP = regionprops(L,'Centroid','Eccentricity');
+
+if numObjects==1
+    centroid=RP(1).Centroid;
+            wp=0;
+   cx= uint16(centroid(1));
+   cy= uint16(centroid(2));
+   
+%counts the num of white pixels crossing the centroid line
+for i= word(cy, :);
+        wp=wp+i;
+end
+    
+else
+     bLens = cellfun('length', B);
+    [lrgst, n] = max(bLens);    
+ 
+    centroid=RP(n).Centroid;
+       
+    wp=0;
+   cx= uint16(centroid(1));
+   cy= uint16(centroid(2));  
+   
+%counts the num of white pixels crossing the centroid line
+for i= word(cy, :);
+        wp=wp+i;
+end
+
+end
+    x=height/2;
+
+%output graphical display of detected components & centroid location
+if dispOutput == true
+
+    subplot(1,3,1),subimage(imgin);hold on;
+    title('Original Image');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,2),subimage(rgbcomps);hold on;
+    title('Connected Components');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,3),subimage(word);hold on;
+    title({'Binary Image', 'With Centroid Location(s)'});
+
+    for objectNum = 1:num
+        centroid=RP(objectNum).Centroid;
+
+        plot(centroid(1),centroid(2), 'LineWidth',3,'Marker', 'x', 'MarkerEdgeColor', 'r','MarkerSize', 14);
+    end
+
+else
+
+end
+%output statistics of detected components, number of pixels & centroid location
+if stats == true
+    fprintf('\n Total number of connected components detected: %1.0f \r',numObjects);
+    fprintf('\n Centorid location at: %1.0f \r',centroid);
+    fprintf('\n Num pixels crossing midline: %1.0f \r',wp);
+else
+
+end
