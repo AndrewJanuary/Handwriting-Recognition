@@ -14,7 +14,7 @@ The file 'nFoldAll.m' can be considered as a test harness which calls the featur
 
 Feature Extraction Prototypes 
 =============================
-Name: protoCentroid.m 
+Name: protoCentroid.m
 Inputs: Image Filename, display argument, stats argument 
 Outputs: Centroid co-ords, eccentricity measurement, No. connected components 
 
