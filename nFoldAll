@@ -1,0 +1,175 @@
+%Andrew January
+%JAN07090690
+%BSc Computing - CMP3060 FYP
+%nFoldAll function. Applies 10 fold cross validation to a balanced dataset
+%of 300 images, 30 classes (words), 10 instances of each. 
+%uses the best performing feature vector. See supporting report for futher details.
+
+%USEAGE
+%normDensity = nFoldAll () - executes 10-fold
+%testing on default testing set
+%normDensity = nFoldAll (tsetNum) - executes 10-fold
+%testing on specified testing set tsetNum
+%normDensity = nFoldAll (tsetNum, 's',) - executes 10-fold
+%testing on specified testing set tsetNum, outputs stats
+%normDensity = nFoldAll (tsetNum, 's', 'folderpath') - executes 10-fold
+%testing on specified testing set tsetNum and folder, outputs stats 
+%tsetNum - integer 1-10. Default value 1 
+%stats - optional statistics output
+%folderPath - string folder path of folder containing images
+function [class] = nFoldAll(tsetNum, stats, folderPath)
+
+if nargout == 2
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities, percentage of word in upper region, percentage of word in lower region .')
+end
+
+if nargin == 3   
+    stats =true;
+     fprintf('\n Additional statistics on. \r'); 
+     fprintf('\n Folder path: %1.0f \r',folderPath); 
+     fprintf('\n Executing 10 Fold Cross Validation... \r'); 
+elseif nargin == 2
+     stats =true;
+     folderPath=('Balanced Dataset/*.png');
+     fprintf('\n Additional statistics on. \r'); 
+     fprintf('\n Executing 10 Fold Cross Validation... \r'); 
+elseif nargin == 1
+    stats =false;
+    folderPath=('Balanced Dataset/*.png');
+    fprintf('\n Executing 10 Fold Cross Validation... \r'); 
+elseif nargin == 0
+    tsetNum=1;
+    stats =false;
+    folderPath=('Balanced Dataset/*.png');
+    fprintf('\n Default test set used. Specify argument integer 1-10 to use alternative test sets \r');
+    fprintf('\n Specify argument ''S'' to list additional statistics and internal variables\r'); 
+    fprintf('\n Executing 10 Fold Cross Validation... \r'); 
+else
+    error('Incorrect number of input arguments. Specify a folderpath or leave arguments blank to use default folder: Balanced Dataset')
+end
+
+%Reads details for all .png image files in specified directory
+%Stores the fileNames of each image in the cell 'fileNames'
+files=dir(folderPath);
+num_files = numel(files);
+fileNames = cell(1, num_files);
+
+for i = 1: num_files
+    fileNames{i}=['Balanced Dataset/' files(i).name];
+end
+
+%testSets containing 30 test images each
+%Default test set 
+if tsetNum == 1
+    testSet={fileNames{1};fileNames{11};fileNames{21};fileNames{31};fileNames{41};fileNames{51};fileNames{61};fileNames{71};fileNames{81};fileNames{91};
+        fileNames{101};fileNames{111};fileNames{121};fileNames{131};fileNames{141};fileNames{151};fileNames{161};fileNames{171};fileNames{181};fileNames{191};
+        fileNames{201}; fileNames{211};fileNames{221};fileNames{231};fileNames{241};fileNames{251};fileNames{261};fileNames{271};fileNames{281};fileNames{291}};
+
+elseif tsetNum == 2
+    testSet={fileNames{2};fileNames{12};fileNames{22};fileNames{32};fileNames{42};fileNames{52};fileNames{62};fileNames{72};fileNames{82};fileNames{92};
+        fileNames{102};fileNames{112};fileNames{122};fileNames{132};fileNames{142};fileNames{152};fileNames{162};fileNames{172};fileNames{182};fileNames{192};
+        fileNames{202}; fileNames{212};fileNames{222};fileNames{232};fileNames{242};fileNames{252};fileNames{262};fileNames{272};fileNames{282};fileNames{292}};
+
+elseif tsetNum == 3
+    testSet={fileNames{3};fileNames{13};fileNames{23};fileNames{33};fileNames{43};fileNames{53};fileNames{63};fileNames{73};fileNames{83};fileNames{93};
+        fileNames{103};fileNames{113};fileNames{123};fileNames{133};fileNames{143};fileNames{153};fileNames{163};fileNames{173};fileNames{183};fileNames{193};
+        fileNames{203}; fileNames{213};fileNames{223};fileNames{233};fileNames{243};fileNames{253};fileNames{263};fileNames{273};fileNames{283};fileNames{293}};
+
+elseif tsetNum == 4
+    testSet={fileNames{4};fileNames{14};fileNames{24};fileNames{34};fileNames{44};fileNames{54};fileNames{64};fileNames{74};fileNames{84};fileNames{94};
+        fileNames{104};fileNames{114};fileNames{124};fileNames{134};fileNames{144};fileNames{154};fileNames{164};fileNames{174};fileNames{184};fileNames{194};
+        fileNames{204}; fileNames{214};fileNames{224};fileNames{234};fileNames{244};fileNames{254};fileNames{264};fileNames{274};fileNames{284};fileNames{294}};
+
+elseif tsetNum == 5
+    testSet={fileNames{5};fileNames{15};fileNames{25};fileNames{35};fileNames{45};fileNames{55};fileNames{65};fileNames{75};fileNames{85};fileNames{95};
+        fileNames{105};fileNames{115};fileNames{125};fileNames{135};fileNames{145};fileNames{155};fileNames{165};fileNames{175};fileNames{185};fileNames{195};
+        fileNames{205}; fileNames{215};fileNames{225};fileNames{235};fileNames{245};fileNames{255};fileNames{265};fileNames{275};fileNames{285};fileNames{295}};
+
+elseif tsetNum == 6
+    testSet={fileNames{6};fileNames{16};fileNames{26};fileNames{36};fileNames{46};fileNames{56};fileNames{66};fileNames{76};fileNames{86};fileNames{96};
+        fileNames{106};fileNames{116};fileNames{126};fileNames{136};fileNames{146};fileNames{156};fileNames{166};fileNames{176};fileNames{186};fileNames{196};
+        fileNames{206}; fileNames{216};fileNames{226};fileNames{236};fileNames{246};fileNames{256};fileNames{266};fileNames{276};fileNames{286};fileNames{296}};
+
+elseif tsetNum == 7
+    testSet={fileNames{7};fileNames{17};fileNames{27};fileNames{37};fileNames{47};fileNames{57};fileNames{67};fileNames{77};fileNames{87};fileNames{97};
+        fileNames{107};fileNames{117};fileNames{127};fileNames{137};fileNames{147};fileNames{157};fileNames{167};fileNames{177};fileNames{187};fileNames{197};
+        fileNames{207}; fileNames{217};fileNames{227};fileNames{237};fileNames{247};fileNames{257};fileNames{267};fileNames{277};fileNames{287};fileNames{297}};
+
+elseif tsetNum == 8
+    testSet={fileNames{8};fileNames{18};fileNames{28};fileNames{38};fileNames{48};fileNames{58};fileNames{68};fileNames{78};fileNames{88};fileNames{98};
+        fileNames{108};fileNames{118};fileNames{128};fileNames{138};fileNames{148};fileNames{158};fileNames{168};fileNames{178};fileNames{188};fileNames{198};
+        fileNames{208}; fileNames{218};fileNames{228};fileNames{238};fileNames{248};fileNames{258};fileNames{268};fileNames{278};fileNames{288};fileNames{298}};
+
+elseif tsetNum == 9
+    testSet={fileNames{9};fileNames{19};fileNames{29};fileNames{39};fileNames{49};fileNames{59};fileNames{69};fileNames{79};fileNames{89};fileNames{99};
+        fileNames{109};fileNames{119};fileNames{129};fileNames{139};fileNames{149};fileNames{159};fileNames{169};fileNames{179};fileNames{189};fileNames{199};
+        fileNames{209}; fileNames{219};fileNames{229};fileNames{239};fileNames{249};fileNames{259};fileNames{269};fileNames{279};fileNames{289};fileNames{299}};
+
+elseif tsetNum == 10
+    testSet={fileNames{10};fileNames{20};fileNames{30};fileNames{40};fileNames{50};fileNames{60};fileNames{70};fileNames{80};fileNames{90};fileNames{100};
+        fileNames{110};fileNames{120};fileNames{130};fileNames{140};fileNames{150};fileNames{160};fileNames{170};fileNames{180};fileNames{190};fileNames{200};
+        fileNames{210}; fileNames{220};fileNames{230};fileNames{240};fileNames{250};fileNames{260};fileNames{270};fileNames{280};fileNames{290};fileNames{300}};
+end
+
+%Removes testSet images from fileNames
+for i= 1: numel(testSet)
+    x=testSet{i};
+    index= find(ismember(fileNames, x)==1);
+    fileNames(index)=[];
+end
+
+%Copies remaining fileNames into trainingSet
+%This now contains the filenames of 270 training images
+for i=1:numel(fileNames);
+    trainingSet(i,:)=fileNames(i);
+end
+
+%Groups ASCII Equivlient of 30 Most frequently occuring words of IAM database
+an='"an"   ';and='"and"  ';are='"are"  ';as='"as"   ';at='"at"   ';
+be='"be"   ';been='"been" ';but='"but"  ';by='"by"   ';
+f0r='"for"  ';from='"from" ';
+had='"had"  ';has='"has"  ';have='"have" ';he='"he"   ';his='"his"  ';
+in='"in"   ';is='"is"   ';it='"it"   ';
+not='"not"  ';
+on='"on"   ';or='"or"   ';
+she='"she"  ';
+that='"that" ';the='"the"  ';their='"their"';there='"there"';they='"they" ';this='"this" ';to='"to"   ';
+
+%loop features extraction 270 times, pass each filename from trainingSet.
+%place each result in a vector/cell
+%Defined for features which provide best results (horizontal & vertical densities)
+for i =1:numel(trainingSet)
+    [nvDen2, topPer2, bper2]=protoVDensity(trainingSet{i});
+    [nhDen2]=protoHDensity(trainingSet{i});
+    trainingFeatures(i,:)=[nhDen2,nvDen2];
+end
+
+%loop features extraction 30 times, pass each filename from testSet.
+%place each result in a vector/cell
+%Defined for features which provide best results (horizontal & vertical densities)
+for i =1:numel(testSet);
+
+    [nvDen2, topPer2, bper2]=protoVDensity(testSet{i});
+    [nhDen2]=protoHDensity(testSet{i});
+    testFeatures(i,:)=[nhDen2,nvDen2];
+end
+
+sample=[testFeatures];
+training=[trainingFeatures];
+group=[an;an;an;an;an;an;an;an;an;and;and;and;and;and;and;and;and;and;are;are;are;are;are;are;are;are;are;
+    as;as;as;as;as;as;as;as;as;at;at;at;at;at;at;at;at;at;be;be;be;be;be;be;be;be;be;been;been;been;been;been;been;been;been;been;
+    but;but;but;but;but;but;but;but;but;by;by;by;by;by;by;by;by;by;f0r;f0r;f0r;f0r;f0r;f0r;f0r;f0r;f0r;from;from;from;from;from;from;from;from;from;
+    had;had;had;had;had;had;had;had;had;has;has;has;has;has;has;has;has;has;have;have;have;have;have;have;have;have;have;he;he;he;he;he;he;he;he;he;
+    his;his;his;his;his;his;his;his;his;in;in;in;in;in;in;in;in;in;is;is;is;is;is;is;is;is;is;it;it;it;it;it;it;it;it;it;not;not;not;not;not;not;not;not;not;
+    on;on;on;on;on;on;on;on;on;or;or;or;or;or;or;or;or;or;she;she;she;she;she;she;she;she;she;that;that;that;that;that;that;that;that;that;
+    the;the;the;the;the;the;the;the;the;their;their;their;their;their;their;their;their;their;there;there;there;there;there;there;there;there;there;
+    they;they;they;they;they;they;they;they;they;this;this;this;this;this;this;this;this;this;to;to;to;to;to;to;to;to;to];
+class=knnclassify(sample,training,group);
+
+if stats == true
+    fprintf('\n Number of images in full dataset: %1.0f \r',num_files);
+    fprintf('\n Number of images in training set: %1.0f \r',numel(trainingSet));
+    fprintf('\n Number of images in test set: %1.0f \r',numel(testSet));    
+else
+end
+end
