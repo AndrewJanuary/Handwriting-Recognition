@@ -1,0 +1,109 @@
+%Andrew January
+%JAN07090690
+%BSc Computing - CMP3060 FYP
+%Feature extraction function - Horizontal Density  
+
+%USEAGE
+%normDensity = protoHDensity (imageIn, 'd', 's') - processes the binary image file
+%imageIn, determines and outputs horizontal densities
+%dispOut - optional graphical output
+%stats - optional statistics output
+
+function [normDensity] = protoHDensity(imageFile, dispOutput, stats)
+
+if nargout == 2
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities.')
+end
+
+if nargin == 3
+    stats =true;
+    dispOutput =true;
+elseif nargin == 2
+    dispOutput =true;
+    stats =false;
+elseif nargin == 1
+    dispOutput=false;
+    stats =false;
+else
+    error('Incorrect number of input arguments. Please specify an image file path.')
+end
+
+imgin=imread(imageFile);
+[word,wordResized]=preProcess(imgin,'R');
+[height, width] = size(wordResized);
+[L,num]=bwlabel(wordResized,8);
+numObjects=num;
+
+rgbcomps=label2rgb(L);
+B=bwboundaries(wordResized,'noholes');
+
+Col=1;
+if numObjects==1
+    wp=0;
+    while Col <= width
+
+        for i= sum(wordResized(:, Col));
+            wp=wp+i;
+        end
+        densities(Col)=wp;
+        wp=0;
+        Col=Col+1;
+    end
+else
+    bLens = cellfun('length', B);
+    [lrgst, n] = max(bLens);
+
+    wp=0;
+    while Col <= width
+        %counts the num of white pixels that crossing the centroid line
+        for i= sum(wordResized(:, Col));
+            wp=wp+i;
+        end
+        densities(Col)=wp;
+        wp=0;
+        Col=Col+1;
+    end
+
+end
+
+el=1;
+total=sum(densities);
+%normalise density. Return the percentage of total white pixel content in each
+%Column
+ld=length(densities);
+while el<=ld
+    Z=densities(el);
+    n= Z/total;
+    n=n*100;
+    normDensity(el)=n;
+    el=el+1;
+end
+
+if dispOutput == true
+
+    subplot(1,3,1),subimage(imgin);hold on;
+    title('Original Image');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,2),subimage(rgbcomps);hold on;
+    title('Connected Components');
+    set(gca,'xtick',[],'ytick',[]);
+
+    subplot(1,3,3),subimage(word);hold on;
+    title({'Binary Image'});
+
+    figure;bar (normDensity, 'DisplayName', 'd');
+    title 'Histogram of Horizontal Density';
+    xlabel('Col No.');
+    ylabel('Density %');
+
+else
+
+end
+
+if stats == true
+    fprintf('\n Total number of connected components detected: %1.0f \r',numObjects);
+else
+
+end
+end
