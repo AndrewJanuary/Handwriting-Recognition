@@ -1,0 +1,38 @@
+%Andrew January
+%JAN07090690
+%BSc Computing - CMP3060 FYP
+%Feature extraction function - Euler Number
+
+%USEAGE
+%finalCode = protoEuler ('imageIn','s') - processes the binary image file
+%imageIn, determines and outputs chain code
+%stats - optional statistics output
+function [eul] = protoEuler(imageFile, stats)
+if nargout == 2
+    error('Too many output arguments. Outputs are horizontal densities, normalised horizontal densities.')
+end
+
+if nargin == 2
+    stats =true;
+elseif nargin == 1
+    stats =false;
+else
+    error('Incorrect number of input arguments. Please specify an image file path.')
+end
+imgin=imread(imageFile);
+word=preProcess(imgin);
+
+eul=bweuler(word);
+
+%Detects and labels connected components.
+[L,num]=bwlabel(word,8);
+numObjects=num;
+
+
+%output statistics of detected components, number of pixels & centroid location
+if stats == true
+    fprintf('\n Total number of connected components detected: %1.0f \r',numObjects);
+else
+
+end
+end
